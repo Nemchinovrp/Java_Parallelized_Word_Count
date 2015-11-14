@@ -34,15 +34,12 @@ public class ProcessFile implements Runnable {
                     w = w.trim();
                     w = w.toLowerCase();
                     if(!w.isEmpty()) {
-                        // use word = key to get value = freq
-                        Integer freq = hashMap.get(w);
-                        // if word doesn't exist add it to the hashmap
-                        if (freq == null) {
+
+
+                        if (hashMap.containsKey(w)){
+                            hashMap.put(w, hashMap.get(w) + 1);
+                        } else {
                             hashMap.put(w, 1);
-                        }
-                        // if word does exist increment the count of the word
-                        else {
-                            hashMap.put(w, freq + 1);
                         }
                     }
                 }
@@ -70,7 +67,6 @@ public class ProcessFile implements Runnable {
                 bwriter.newLine();
             }
             fwriter.close();
-            //bwriter.close();
         }
         catch(IOException e) {
             System.out.println("No such file/directory: <" +">");

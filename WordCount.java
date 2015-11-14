@@ -78,7 +78,6 @@ public class WordCount {
         File file = new File(fileOrDirc);
         if(file.isDirectory()){
             ExecutorService service = Executors.newFixedThreadPool(numOfThread);
-            ArrayList<ProcessFile> pfa = new ArrayList<ProcessFile>();
 
             File[] filesInDirectory = file.listFiles();
             for(File f: filesInDirectory) {
@@ -111,10 +110,6 @@ public class WordCount {
                 }
             }
 
-                //for(ProcessFile pf: pfa){
-                //    service.execute(pf);
-                //}
-
                 service.shutdown();
                 try {
                     service.awaitTermination(10, TimeUnit.MINUTES);
@@ -127,7 +122,6 @@ public class WordCount {
         else {
             // if passed a file
             ExecutorService service = Executors.newFixedThreadPool(numOfThread);
-            ArrayList<ProcessFile> pfa = new ArrayList<ProcessFile>();
             try{
                 FileReader fr = new FileReader(file);
                 Scanner scanner = new Scanner(fr);
@@ -142,7 +136,7 @@ public class WordCount {
                     count++;
                     if (count == maxLinesInChunk || !scanner.hasNext()) {
 
-                        pfa.add(new ProcessFile(al, ++i, output, tm, file));
+                        service.execute(new ProcessFile(al, ++i, output, tm, file));
 
                         al = new ArrayList<String>();
                         tm = new HashMap<String, Integer>();
@@ -156,9 +150,6 @@ public class WordCount {
                 e.printStackTrace();
             }
 
-            for(ProcessFile pf: pfa){
-                service.execute(pf);
-            }
             service.shutdown();
             try {
                 service.awaitTermination(5000, TimeUnit.MICROSECONDS);
@@ -171,8 +162,6 @@ public class WordCount {
     }
 
     public static void resultFile(File output) {
-        //HashMap[] listm = new HashMap[];
-        //ArrayList<HashMap<String, Integer>> listhm = new ArrayList<HashMap<String, Integer>>();
         HashMap<String, Integer> hm = new HashMap<String, Integer>();
         File[] Files = output.listFiles();
         for(File file: Files) {
@@ -189,27 +178,23 @@ public class WordCount {
                         word = words[0];
                         count = Integer.parseInt(words[1]);
 
-                        if (hm.containsKey(word)) {
+                        if (hm.containsKey(word)){
                             hm.put(word, hm.get(word) + count);
-                        } else {
+                        }
+                        else {
                             hm.put(word, count);
                         }
                     }
 
-                    //if(word.length == 2){
-                    //    hm.put(word[0], Integer.parseInt(word[1]));
-                    //}
                     if(!sc.hasNext()){
-                        //listhm.add(hm);
                         fr.close();
-                        //hm = new HashMap<String, Integer>();
                     }
                 }
             } catch(IOException e){
                     e.printStackTrace();
             }
         }
-        //mergeAndAdd(hm, output);
+
         Map sortedResults = new LinkedHashMap<String, Integer>();
         sortedResults = sortByValue(hm);
 
@@ -233,41 +218,6 @@ public class WordCount {
             System.exit(0);
         }
 
-    }
-
-    public static void mergeAndAdd(ArrayList<HashMap<String, Integer>> maplist, File output) {
-        HashMap<String, Integer> result = new HashMap<String, Integer>();
-        Map sortedResults = new LinkedHashMap<String, Integer>();
-
-        for (HashMap<String, Integer> map : maplist) {
-            for (Map.Entry<String, Integer> entry : map.entrySet()) {
-                String key = entry.getKey();
-                Integer current = result.get(key);
-                result.put(key, current == null ? entry.getValue() : entry.getValue() + current);
-            }
-        }
-
-        sortedResults = sortByValue(result);
-
-        FileWriter fwriter;
-        BufferedWriter bwriter;
-
-        try {
-            fwriter = new FileWriter(new File(output, "results.txt"));
-            bwriter = new BufferedWriter(fwriter);
-
-            List<Map.Entry<String, Integer>> list = new ArrayList<>(sortedResults.entrySet());
-            for(int i = list.size() - 1; i >=0; i--){
-                Map.Entry<String, Integer> entry = list.get(i);
-                bwriter.write(entry.getKey() + "\t" + entry.getValue());
-                bwriter.newLine();
-            }
-            bwriter.close();
-        }
-        catch(IOException e) {
-            System.out.println("No such file/directory: <" +">");
-            System.exit(0);
-        }
     }
 
     public static Map sortByValue(HashMap<String, Integer> map) {
