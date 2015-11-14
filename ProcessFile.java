@@ -69,8 +69,6 @@ public class ProcessFile implements Runnable {
                 bwriter.write(entry.getKey() + "\t" + entry.getValue());
                 bwriter.newLine();
             }
-            //System.out.println("wrote " + f.getName() + "_" + num + ".chunk" );
-
             fwriter.close();
             //bwriter.close();
         }
@@ -85,14 +83,15 @@ public class ProcessFile implements Runnable {
         synchronized (this) {
             List list = new LinkedList(map.entrySet());
             Collections.sort(list, new Comparator() {
-                public int compare(Object o1, Object o2) {
-                    return ((Comparable) ((Map.Entry) (o1)).getValue())
-                            .compareTo(((Map.Entry) (o2)).getValue());
+                public int compare(Object count1, Object count2) {
+                    return ((Comparable) ((Map.Entry) (count1)).getValue())
+                            .compareTo(((Map.Entry) (count2)).getValue());
                 }
             });
 
             Map result = new LinkedHashMap();
-            for (Iterator it = list.iterator(); it.hasNext(); ) {
+            for (Iterator it = list.iterator();
+                 it.hasNext(); ) {
                 Map.Entry entry = (Map.Entry) it.next();
                 result.put(entry.getKey(), entry.getValue());
             }
