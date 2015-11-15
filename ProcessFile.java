@@ -1,4 +1,3 @@
-
 import java.io.*;
 import java.util.*;
 
@@ -66,7 +65,7 @@ public class ProcessFile implements Runnable {
                 bwriter.write(entry.getKey() + "\t" + entry.getValue());
                 bwriter.newLine();
             }
-            fwriter.close();
+            bwriter.close();
         }
         catch(IOException e) {
             System.out.println("No such file/directory: <" +">");
