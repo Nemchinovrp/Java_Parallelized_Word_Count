@@ -31,10 +31,10 @@ public class ProcessFile implements Runnable {
                     w = w.replaceAll("\\W+", "");
                     // remove white space around word
                     w = w.trim();
+                    // all words should be in lower case in output files
                     w = w.toLowerCase();
+                    // don't include empty strings
                     if(!w.isEmpty()) {
-
-
                         if (hashMap.containsKey(w)){
                             hashMap.put(w, hashMap.get(w) + 1);
                         } else {
@@ -55,8 +55,9 @@ public class ProcessFile implements Runnable {
         int size = sortedResults.size();
         int count = 0;
 
+        // create and write to the correct chunk file
         try {
-            fwriter = new FileWriter(new File(output, f.getName() + "_" + num + ".chunk"));
+            fwriter = new FileWriter(new File(output, f.getName().toLowerCase() + "_" + num + ".chunk"));
             bwriter = new BufferedWriter(fwriter);
 
             List<Map.Entry<String, Integer>> list = new ArrayList<>(sortedResults.entrySet());
@@ -68,12 +69,12 @@ public class ProcessFile implements Runnable {
             bwriter.close();
         }
         catch(IOException e) {
-            System.out.println("No such file/directory: <" +">");
+            System.out.println("No such file/directory: <" + f.getName() + ">");
             System.exit(0);
         }
     }
 
-
+    // sort output in descending order (words with largest counts first)
     public Map sortByValue(HashMap<String, Integer> map) {
         synchronized (this) {
             List list = new LinkedList(map.entrySet());

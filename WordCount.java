@@ -1,7 +1,8 @@
 /**
- * Created by Stephanie on 10/16/2015.
+ * Created by Stephanie on 10/16/2015
  * Assignment 3: Parallelized Word Count
  * CS3250 UVU Fall 2015
+ * Last Modified: 11/15/2015
  *
  * Objective: Implement a word counting program that computes word counts in parallel,
  * merging the results in the end. Program will break down its tasks into smaller pieces
@@ -22,13 +23,11 @@
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
+// one main class WordCount.java with NO PACKAGE
 public class WordCount {
-    // You should have one main class WordCount.java with NO PACKAGE.
 
     public static void main(String args[]) {
-        // All input would be MANDATORY for this assignment. If wrong number of input arguments specified or invalid argument types, then print the following:
         // If wrong number of input arguments specified or invalid arguments (wrong number of threads, wrong chunk size etc), then print the following:
         // Usage: java WordCount <file|directory> <chunk size 10-5000> <num of threads 1-100>
         if(args.length == 0) {
@@ -40,13 +39,12 @@ public class WordCount {
         int numOfThread = 0;
         // Make sure the input has exactly 3 arguments
         if (args.length == 3) {
-            // check that the second argument is setting chunk size between 10-5000
             // check that the first argument is a file or directory
             fileOrDirc = args[0];
             if(!checkFileDirc(fileOrDirc)) {
                 noSuchFile(fileOrDirc);
             }
-
+            // check that the second argument is setting chunk size between 10-5000
             if (isInt(args[1])) {
                 maxLinesInChunk = Integer.parseInt(args[1]);
                 if (maxLinesInChunk < 10 || maxLinesInChunk > 5000) {
@@ -76,6 +74,7 @@ public class WordCount {
         File output = new File("output/");
         createDirectory(output);
         File file = new File(fileOrDirc);
+        // If the input file is a directory search every file in the directory
         if(file.isDirectory()){
             ExecutorService service = Executors.newFixedThreadPool(numOfThread);
 
@@ -120,7 +119,7 @@ public class WordCount {
         }
 
         else {
-            // if passed a file
+            // if passed a file just search that file
             ExecutorService service = Executors.newFixedThreadPool(numOfThread);
             try{
                 FileReader fr = new FileReader(file);
@@ -136,7 +135,7 @@ public class WordCount {
                     count++;
                     if (count == maxLinesInChunk || !scanner.hasNext()) {
 
-                        service.execute(new ProcessFile(al, ++i, output, tm, file));
+                        service.execute(new ProcessFile(al, i++, output, tm, file));
 
                         al = new ArrayList<String>();
                         tm = new HashMap<String, Integer>();
@@ -161,6 +160,7 @@ public class WordCount {
         resultFile(output);
     }
 
+    // Method the create a results file with the sum of all words in chunk files
     public static void resultFile(File output) {
         HashMap<String, Integer> hm = new HashMap<String, Integer>();
         File[] Files = output.listFiles();
@@ -195,7 +195,7 @@ public class WordCount {
             }
         }
 
-        Map sortedResults = new LinkedHashMap<String, Integer>();
+        LinkedHashMap<String, Integer> sortedResults = new LinkedHashMap<String, Integer>();
         sortedResults = sortByValue(hm);
 
         FileWriter fwriter;
@@ -220,23 +220,25 @@ public class WordCount {
 
     }
 
-    public static Map sortByValue(HashMap<String, Integer> map) {
-        List list = new LinkedList(map.entrySet());
-        Collections.sort(list, new Comparator() {
-            public int compare(Object o1, Object o2) {
-                return ((Comparable) ((Map.Entry) (o1)).getValue())
-                        .compareTo(((Map.Entry) (o2)).getValue());
+    // sort the output in descending order, words with largest count to less count
+    public static LinkedHashMap<String, Integer> sortByValue(HashMap<String, Integer> map) {
+        List<Map.Entry<String, Integer>> list = new LinkedList<Map.Entry<String, Integer>>(map.entrySet());
+        Collections.sort(list, new Comparator<Map.Entry<String, Integer>>() {
+            public int compare(Map.Entry<String, Integer> num1, Map.Entry<String, Integer> num2) {
+                return ((Comparable<Integer>)((num1)).getValue())
+                        .compareTo((num2).getValue());
             }
         });
 
-        Map result = new LinkedHashMap();
-        for (Iterator it = list.iterator(); it.hasNext();) {
-            Map.Entry entry = (Map.Entry)it.next();
+        LinkedHashMap<String, Integer> result = new LinkedHashMap<String, Integer>();
+        for (Iterator<Map.Entry<String, Integer>> it = list.iterator(); it.hasNext();) {
+            Map.Entry<String, Integer> entry = it.next();
             result.put(entry.getKey(), entry.getValue());
         }
         return result;
     }
 
+    // create the output directory
     public static void createDirectory(File output) {
         if (!output.exists()){
             boolean result = false;
@@ -256,6 +258,7 @@ public class WordCount {
         }
     }
 
+    // delete any content already in output directory
     public static void deleteContent(File output){
         File[] files = output.listFiles();
         if (files != null) {
@@ -270,6 +273,7 @@ public class WordCount {
         }
     }
 
+    // check if the argument is a file or directory
     public static boolean checkFileDirc(String fileOrDirc) {
         File f = new File(fileOrDirc);
         if ((f.exists() && !f.isDirectory()) || ((f.exists() && f.isDirectory()))) {
@@ -280,6 +284,7 @@ public class WordCount {
         }
     }
 
+    // check if the argument is an integer
     public static boolean isInt(String string) {
         try {
             Integer.parseInt(string);
@@ -290,11 +295,13 @@ public class WordCount {
         }
     }
 
+    // output for wrong input
     public static void wrongInput() {
         System.out.println("Usage: java WordCount <file|directory> <chunk size 10-5000> <num of threads 1-100>");
         System.exit(0);
     }
 
+    // output for file or directory that does not exist
     public static void noSuchFile(String fileOrDirc) {
         System.out.println("No such file/directory: <" + fileOrDirc +">");
         System.exit(0);
